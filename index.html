@@ -1,34 +1,9 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webhook Manager</title>
-    <style>
-        body {
-            background:none;
-            color: #d0d0d0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 20px;
-        }
-
-       p {
-            margin: 15px 0;
-            line-height: 1.6;
-            color:white;
-        }
-
+<style>
+body {
+background:none;
+width:100%;
+}
        input {
             width: 95%;
             height: 30px;
@@ -39,7 +14,7 @@
             font-size: 16px;
         }
 
-        input:focus {
+       input:focus {
             outline: none;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
         }
@@ -61,399 +36,38 @@
             background-color: #0D90F3;
             color: #FFFFFF;
         }
-        .message {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        .success {
-            color: lightblue;
-            font-weight: bold;
-        }
-        .error {
-            color: #ff6347;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <input type="text" id="webhookUrl" placeholder="Paste Webhook URL here">
-        <button onclick="deleteWebhook()">Delete Webhook</button>
-        <button onclick="testWebhook()">Validate Webhook</button>
-        <button onclick="getGuildId()">Get Guild ID</button>
-        <button onclick="getChannelId()">Get Channel ID</button>
-        <button onclick="getWebhookName()">Get Webhook Name</button>
-        <button onclick="getWebhookId()">Get Webhook ID</button>
-        <button onclick="getWebhookToken()">Get Webhook Token</button>
-        <button onclick="sendCustomMessage()">Send Custom Message</button>
-        <div class="message" id="message"></div>
-<input id="custom-message" type="text" placeholder="Enter a custom message">
-<button id="spam-btn">Start Spamming</button>
-<div id="sent-messages"></div>
-    </div>
+  </style>
+  <div id="menu">
+    <input type="text" id="webhook" placeholder="Enter webhook url...">
+    <input type="text" id="username" placeholder="Enter username...">
+    <input type="text" id="pfp" placeholder="Enter profile picture url...">
+    <input type="text" id="message" placeholder="Enter your message here...">
+    <button id="sendMessage">Send</button>
+  </div>
+<script>
+      function sendMessage() {
+        var message = document.getElementById('message').value;
+        var webhook = document.getElementById('webhook').value;
+        var profile = document.getElementById('pfp').value;
+        var name = document.getElementById('username').value;
+        var request = new XMLHttpRequest();
+        request.open("POST", webhook);
+        request.setRequestHeader("Content-type", "application/json");
+        var params = {
+            username: name,
+            avatar_url: profile,
+            content: message
+        };
+        request.send(JSON.stringify(params));
 
-    <script>
-        function deleteWebhook() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const deletionProtocol = 'DELETE';
+        request.addEventListener('load', function(event) {
+            console.log(request.status);
+            console.log(request.responseText);
+        });
 
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(deletionProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            transmissionLayer.send();
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 204) {
-                    document.getElementById('message').innerText = 'Webhook successfully deleted.';
-                    document.getElementById('message').className = 'message success';
-                } else {
-                    document.getElementById('message').innerText = 'Deletion failed. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-
-        function testWebhook() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const testProtocol = 'GET';
-
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(testProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            transmissionLayer.send();
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 200) {
-                    document.getElementById('message').innerText = 'Webhook is valid.';
-                    document.getElementById('message').className = 'message success';
-                } else {
-                    document.getElementById('message').innerText = 'Webhook is not valid. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-
-        function getGuildId() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const getGuildIdProtocol = 'GET';
-
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(getGuildIdProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            transmissionLayer.send();
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 200) {
-                    try {
-                        const response = JSON.parse(transmissionLayer.responseText);
-                        console.log('Webhook Response:', response);  
-                        
-                        const guildId = response.guild_id;
-
-                        if (guildId) {
-                            document.getElementById('message').innerText = 'Guild ID: ' + guildId;
-                            document.getElementById('message').className = 'message success';
-                        } else {
-                            document.getElementById('message').innerText = 'Guild ID not found in the response.';
-                            document.getElementById('message').className = 'message error';
-                        }
-                    } catch (error) {
-                        document.getElementById('message').innerText = 'Failed to parse response. Check the URL and try again.';
-                        document.getElementById('message').className = 'message error';
-                    }
-                } else {
-                    document.getElementById('message').innerText = 'Failed to retrieve data. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-
-        function getChannelId() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const getChannelIdProtocol = 'GET';
-
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(getChannelIdProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            transmissionLayer.send();
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 200) {
-                    try {
-                        const response = JSON.parse(transmissionLayer.responseText);
-                        console.log('Webhook Response:', response);  
-                        
-                        const channelId = response.channel_id;
-
-                        if (channelId) {
-                            document.getElementById('message').innerText = 'Channel ID: ' + channelId;
-                            document.getElementById('message').className = 'message success';
-                        } else {
-                            document.getElementById('message').innerText = 'Channel ID not found in the response.';
-                            document.getElementById('message').className = 'message error';
-                        }
-                    } catch (error) {
-                        document.getElementById('message').innerText = 'Failed to parse response. Check the URL and try again.';
-                        document.getElementById('message').className = 'message error';
-                    }
-                } else {
-                    document.getElementById('message').innerText = 'Failed to retrieve data. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-
-        function getWebhookName() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const getWebhookNameProtocol = 'GET';
-
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(getWebhookNameProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            transmissionLayer.send();
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 200) {
-                    try {
-                        const response = JSON.parse(transmissionLayer.responseText);
-                        console.log('Webhook Response:', response);  
-
-                        const webhookName = response.name;
-
-                        if (webhookName) {
-                            document.getElementById('message').innerText = 'Webhook Name: ' + webhookName;
-                            document.getElementById('message').className = 'message success';
-                        } else {
-                            document.getElementById('message').innerText = 'Webhook Name not found in the response.';
-                            document.getElementById('message').className = 'message error';
-                        }
-                    } catch (error) {
-                        document.getElementById('message').innerText = 'Failed to parse response. Check the URL and try again.';
-                        document.getElementById('message').className = 'message error';
-                    }
-                } else {
-                    document.getElementById('message').innerText = 'Failed to retrieve data. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-
-        function sendCustomMessage() {
-            const webhookUri = document.getElementById('webhookUrl').value;
-            const sendMessageProtocol = 'POST';
-
-            if (!webhookUri) {
-                document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const proxiedUrl = webhookUri;
-
-            const transmissionLayer = new XMLHttpRequest();
-            transmissionLayer.open(sendMessageProtocol, proxiedUrl, true);
-
-            transmissionLayer.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            transmissionLayer.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3');
-
-            const messageContent = prompt('Enter your custom message:');
-
-            if (!messageContent) {
-                document.getElementById('message').innerText = 'Please enter a valid message.';
-                document.getElementById('message').className = 'message error';
-                return;
-            }
-
-            const encryptedPayload = JSON.stringify({
-                'content': messageContent
-            });
-
-            transmissionLayer.send(encryptedPayload);
-
-            transmissionLayer.onload = function() {
-                if (transmissionLayer.status === 204) {
-                    document.getElementById('message').innerText = 'Message sent successfully.';
-                    document.getElementById('message').className = 'message success';
-                } else {
-                    document.getElementById('message').innerText = 'Failed to send message. Check the URL and try again.';
-                    document.getElementById('message').className = 'message error';
-                }
-            };
-
-            transmissionLayer.onerror = function() {
-                document.getElementById('message').innerText = 'An error occurred while processing the request.';
-                document.getElementById('message').className = 'message error';
-            };
-        }
-        function getWebhookId() {
-    const webhookUri = document.getElementById('webhookUrl').value;
-    
-    if (!webhookUri) {
-        document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-        document.getElementById('message').className = 'message error';
-        return;
+        request.addEventListener('error', function(event) {
+            console.error('shit brokie.');
+        });
     }
-
-    const webhookIdMatch = webhookUri.match(/webhooks\/(\d+)\//);
-
-    if (webhookIdMatch) {
-        const webhookId = webhookIdMatch[1];
-        document.getElementById('message').innerText = 'Webhook ID: ' + webhookId;
-        document.getElementById('message').className = 'message success';
-    } else {
-        document.getElementById('message').innerText = 'Webhook ID not found in the URL.';
-        document.getElementById('message').className = 'message error';
-    }
-}
-function getWebhookToken() {
-    const webhookUri = document.getElementById('webhookUrl').value;
-
-    if (!webhookUri) {
-        document.getElementById('message').innerText = 'Please enter a valid webhook URL.';
-        document.getElementById('message').className = 'message error';
-        return;
-    }
-
-    const webhookTokenMatch = webhookUri.match(/webhooks\/(\d+)\/([a-zA-Z0-9_-]+)/);
-
-    if (webhookTokenMatch) {
-        const webhookToken = webhookTokenMatch[2];
-        document.getElementById('message').innerText = 'Webhook Token: ' + webhookToken;
-        document.getElementById('message').className = 'message success';
-    } else {
-        document.getElementById('message').innerText = 'Webhook Token not found in the URL.';
-        document.getElementById('message').className = 'message error';
-    }
-}
-const customMessageInput = document.getElementById('custom-message');
-const spamBtn = document.getElementById('spam-btn');
-const sentMessagesDiv = document.getElementById('sent-messages');
-
-let spamming = false;
-let spamInterval;
-
-async function sendCustomMessageToWebhook() {
-const webhookUrl = document.getElementById('webhookUrl').value;
-  const message = customMessageInput.value.trim();
-  if (!message) {
-    console.warn('Custom message is empty.');
-    return;
-  }
-
-  if (!webhookUrl) {
-    console.error('Webhook URL is not set.');
-    return;
-  }
-
-  try {
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: message })
-    });
-
-    if (response.ok) {
-      console.log(`Message sent to webhook: ${message}`);
-      sentMessagesDiv.innerHTML += `<p><b>Messages Sent:</b> ${message}</p>`;
-    } else {
-      console.error(`Failed to send message. Status: ${response.status}`);
-    }
-  } catch (error) {
-    console.error('Error sending message:', error);
-  }
-}
-
-function toggleSpamming() {
-  spamming = !spamming;
-  spamBtn.textContent = spamming ? 'Stop Spamming' : 'Start Spamming';
-
-  if (spamming) {
-    spamInterval = setInterval(sendCustomMessageToWebhook, 1000);
-  } else {
-    clearInterval(spamInterval);
-  }
-}
-
-spamBtn.addEventListener('click', toggleSpamming);
+    document.querySelector("#sendMessage").onclick = sendMessage;
 </script>
-</body>
-</html>
